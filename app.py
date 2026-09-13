@@ -108,7 +108,9 @@ CSS = r"""
 .ln-admin{background:#fff;border:1px solid #e5e9f3;border-radius:15px;padding:1rem}
 div.stButton>button[kind="primary"],div.stDownloadButton>button[kind="primary"]{background:linear-gradient(90deg,var(--ln-blue),var(--ln-violet));border:none;border-radius:11px;font-weight:700;min-height:44px}div.stButton>button,div.stDownloadButton>button{border-radius:11px}
 [data-testid="stTextArea"] textarea{border-radius:12px;border-color:#dfe4ef;line-height:1.55}[data-testid="stMetric"]{background:#fff;border:1px solid var(--ln-border);padding:.65rem .8rem;border-radius:12px}hr{border-color:#e9edf5!important}
-@media(max-width:850px){.ln-hero h1{font-size:1.9rem}.block-container{padding-left:1rem;padding-right:1rem}.ln-footer{display:block}}
+/* Auth screen */
+.ln-auth-shell{max-width:1180px;margin:3.5vh auto 0}.ln-auth-visual{background:linear-gradient(145deg,#102248 0%,#17356d 62%,#5d56e8 145%);border-radius:28px;padding:2.1rem 2.2rem;min-height:590px;box-shadow:0 24px 70px rgba(16,34,72,.20);position:relative;overflow:hidden}.ln-auth-visual:before,.ln-auth-visual:after{content:"";position:absolute;border-radius:999px;filter:blur(2px);opacity:.22}.ln-auth-visual:before{width:330px;height:330px;background:#7c6cff;right:-130px;top:-95px}.ln-auth-visual:after{width:290px;height:290px;background:#4b93ff;left:-145px;bottom:-125px}.ln-auth-visual-inner{position:relative;z-index:1}.ln-auth-visual img{width:220px;filter:brightness(0) invert(1)}.ln-auth-eyebrow{color:#b9c8ec;font-size:.76rem;letter-spacing:.22em;text-transform:uppercase;margin-top:2.7rem}.ln-auth-visual h1{color:white;font-size:2.7rem;line-height:1.06;margin:.6rem 0 .75rem}.ln-auth-visual p{color:#d8e2f8;font-size:1.02rem;line-height:1.55;max-width:540px}.ln-auth-benefit{display:flex;gap:.75rem;align-items:flex-start;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.10);border-radius:15px;padding:.82rem .9rem;margin:.72rem 0;color:#eff4ff}.ln-auth-benefit b{display:block;font-size:.93rem}.ln-auth-benefit span{display:block;color:#c5d2ec;font-size:.82rem;margin-top:.08rem}.ln-auth-note{margin-top:1.2rem;color:#b9c8e8!important;font-size:.8rem!important}.ln-auth-card-head{text-align:center;padding:.45rem 0 .9rem}.ln-auth-card-head img{width:205px}.ln-auth-card-title{font-size:1.55rem;font-weight:800;color:#102047;margin:.35rem 0 .18rem}.ln-auth-card-sub{color:#71809f;font-size:.9rem;margin:0 0 .3rem}.ln-auth-badge{display:inline-block;margin-top:.45rem;padding:.27rem .58rem;border-radius:999px;background:#eef1ff;color:#5a61d7;font-size:.74rem;font-weight:700}.ln-auth-helper{background:#f6f8ff;border:1px solid #e3e8fb;border-radius:13px;padding:.72rem .82rem;color:#667594;font-size:.82rem;margin:.65rem 0 .2rem}.ln-auth-legal{color:#8b96ad;font-size:.75rem;text-align:center;margin-top:.8rem}.ln-auth-success{background:#eefbf5;border:1px solid #d8f3e6;border-radius:13px;padding:.75rem .85rem;color:#24704f;font-size:.86rem}.ln-auth-switch-title{font-size:.83rem;font-weight:700;color:#42547a;margin:.2rem 0 .35rem}.ln-auth-separator{height:1px;background:#e8ecf4;margin:.95rem 0}.stTextInput label p,.stTextArea label p{color:#24375f!important;font-weight:650!important}.stTextInput input{background:#ffffff!important;color:#17264b!important;border:1px solid #d9e0ee!important;border-radius:12px!important;min-height:46px!important;box-shadow:none!important}.stTextInput input:focus{border-color:#6877ef!important;box-shadow:0 0 0 3px rgba(88,104,244,.12)!important}.stTextInput input::placeholder{color:#9ba6bd!important}.stTextInput [data-baseweb="input"]{background:#fff!important}.stTextInput [data-baseweb="base-input"]{background:#fff!important}.stTextInput svg{fill:#657493!important}.stForm{border:0!important;padding:0!important}.stSegmentedControl [data-baseweb="button-group"]{background:#f4f6fb;border-radius:12px;padding:4px}.stSegmentedControl button{border-radius:9px!important;font-weight:700!important}.stSegmentedControl button[aria-pressed="true"]{background:#fff!important;box-shadow:0 2px 8px rgba(20,37,78,.10)!important;color:#334bd2!important}.ln-auth-mobile{display:none}
+@media(max-width:850px){.ln-hero h1{font-size:1.9rem}.block-container{padding-left:1rem;padding-right:1rem}.ln-footer{display:block}.ln-auth-shell{margin-top:.5rem}.ln-auth-visual{min-height:auto;padding:1.35rem;border-radius:20px}.ln-auth-visual h1{font-size:2rem}.ln-auth-eyebrow{margin-top:1.4rem}.ln-auth-benefit{display:none}.ln-auth-note{display:none}.ln-auth-mobile{display:block}.ln-auth-card-head{padding-top:0}.ln-auth-card-head img{width:180px}}
 </style>
 """
 st.markdown(CSS, unsafe_allow_html=True)
@@ -211,55 +213,108 @@ def auth_gate():
         except Exception:
             reset_auth_state()
 
-    st.markdown(f'<div class="ln-auth"><div class="ln-auth-logo"><img src="{LOGO}"></div><div class="ln-version">Versión {APP_VERSION}</div>', unsafe_allow_html=True)
-    tab_login, tab_signup = st.tabs(["Iniciar sesión", "Crear cuenta"])
+    # Two-column access screen. Both login and sign-up remain visible through
+    # the selector, avoiding Streamlit tab overflow on narrower displays.
+    st.markdown('<div class="ln-auth-shell">', unsafe_allow_html=True)
+    visual, access = st.columns([1.08, .92], gap="large", vertical_alignment="top")
 
-    with tab_login:
-        with st.form("login_form"):
-            email = st.text_input("Correo electrónico", key="login_email")
-            password = st.text_input("Contraseña", type="password", key="login_password")
-            submitted = st.form_submit_button("Entrar a Lunova", type="primary", use_container_width=True)
-        if submitted:
-            try:
-                response = sign_in(client, email, password)
-                if not response.session or not response.user:
-                    st.error("No se pudo iniciar sesión.")
-                else:
-                    st.session_state.access_token, st.session_state.refresh_token = session_tokens(response.session)
-                    user = auth_user_from_supabase(response.user)
-                    st.session_state.auth_user = user
-                    ensure_profile(client, user)
-                    st.rerun()
-            except Exception:
-                st.error("Correo o contraseña incorrectos, o la cuenta aún no está confirmada.")
+    with visual:
+        st.markdown(
+            f'''<div class="ln-auth-visual"><div class="ln-auth-visual-inner">
+                <img src="{LOGO}" alt="Lunova">
+                <div class="ln-auth-eyebrow">ESCRIBE · MEJORA · DESTACA</div>
+                <h1>Transforma tus ideas.<br>Conserva tu esencia.</h1>
+                <p>Un espacio de escritura pensado para revisar, organizar y mejorar textos académicos sin perder tus citas, cifras ni el sentido original.</p>
+                <div class="ln-auth-benefit"><div>🎓</div><div><b>Modo Investigación</b><span>Protección especial para citas, referencias y datos.</span></div></div>
+                <div class="ln-auth-benefit"><div>📄</div><div><b>Documentos protegidos</b><span>Tus borradores y revisiones se guardan en tu cuenta.</span></div></div>
+                <div class="ln-auth-benefit"><div>✨</div><div><b>Revisión por etapas</b><span>Naturalidad, claridad y estructura en un solo proceso.</span></div></div>
+                <p class="ln-auth-note">Lunova v{APP_VERSION} · Tus documentos permanecen separados del código de la aplicación.</p>
+            </div></div>''',
+            unsafe_allow_html=True,
+        )
 
-    with tab_signup:
-        with st.form("signup_form"):
-            name = st.text_input("Nombre", key="signup_name")
-            email2 = st.text_input("Correo electrónico", key="signup_email")
-            password2 = st.text_input("Contraseña", type="password", key="signup_password", help="Usa al menos 8 caracteres.")
-            password3 = st.text_input("Repetir contraseña", type="password", key="signup_password2")
-            created = st.form_submit_button("Crear cuenta", type="primary", use_container_width=True)
-        if created:
-            if len(password2) < 8:
-                st.warning("La contraseña debe tener al menos 8 caracteres.")
-            elif password2 != password3:
-                st.warning("Las contraseñas no coinciden.")
-            elif not name.strip() or "@" not in email2:
-                st.warning("Completa tu nombre y un correo válido.")
-            else:
-                try:
-                    response = sign_up(client, email2, password2, name)
-                    if response.session and response.user:
-                        st.session_state.access_token, st.session_state.refresh_token = session_tokens(response.session)
-                        user = auth_user_from_supabase(response.user)
-                        st.session_state.auth_user = user
-                        ensure_profile(client, user)
-                        st.rerun()
+    with access:
+        with st.container(border=True):
+            st.markdown(
+                f'''<div class="ln-auth-card-head">
+                    <img src="{LOGO}" alt="Lunova">
+                    <div class="ln-auth-card-title">Bienvenido a Lunova</div>
+                    <p class="ln-auth-card-sub">Accede a tu espacio de escritura inteligente.</p>
+                    <span class="ln-auth-badge">Versión {APP_VERSION}</span>
+                </div>''',
+                unsafe_allow_html=True,
+            )
+
+            if "auth_mode" not in st.session_state:
+                st.session_state.auth_mode = "Iniciar sesión"
+
+            selected = st.segmented_control(
+                "Acceso",
+                ["Iniciar sesión", "Crear cuenta"],
+                default=st.session_state.auth_mode,
+                key="auth_selector",
+                label_visibility="collapsed",
+                use_container_width=True,
+            ) or "Iniciar sesión"
+            st.session_state.auth_mode = selected
+
+            if selected == "Iniciar sesión":
+                st.markdown('<div class="ln-auth-switch-title">Inicia sesión con tu cuenta</div>', unsafe_allow_html=True)
+                with st.form("login_form", clear_on_submit=False):
+                    email = st.text_input("Correo electrónico", key="login_email", placeholder="nombre@correo.com")
+                    password = st.text_input("Contraseña", type="password", key="login_password", placeholder="Tu contraseña")
+                    submitted = st.form_submit_button("Entrar a Lunova", type="primary", use_container_width=True)
+                if submitted:
+                    if not email.strip() or not password:
+                        st.warning("Escribe tu correo y contraseña para continuar.")
                     else:
-                        st.success("Cuenta creada. Revisa tu correo para confirmar la cuenta y luego inicia sesión.")
-                except Exception:
-                    st.error("No se pudo crear la cuenta. Verifica el correo o intenta con otro.")
+                        try:
+                            response = sign_in(client, email.strip(), password)
+                            if not response.session or not response.user:
+                                st.error("No se pudo iniciar sesión. Revisa tus datos e inténtalo otra vez.")
+                            else:
+                                st.session_state.access_token, st.session_state.refresh_token = session_tokens(response.session)
+                                user = auth_user_from_supabase(response.user)
+                                st.session_state.auth_user = user
+                                ensure_profile(client, user)
+                                st.rerun()
+                        except Exception:
+                            st.error("Correo o contraseña incorrectos, o la cuenta todavía no está confirmada.")
+
+                st.markdown('<div class="ln-auth-helper"><b>¿Todavía no tienes cuenta?</b><br>Selecciona <b>Crear cuenta</b> en el control de arriba. La opción siempre permanece visible.</div>', unsafe_allow_html=True)
+
+            else:
+                st.markdown('<div class="ln-auth-switch-title">Crea tu cuenta de Lunova</div>', unsafe_allow_html=True)
+                with st.form("signup_form", clear_on_submit=False):
+                    name = st.text_input("Nombre", key="signup_name", placeholder="Tu nombre")
+                    email2 = st.text_input("Correo electrónico", key="signup_email", placeholder="nombre@correo.com")
+                    password2 = st.text_input("Contraseña", type="password", key="signup_password", placeholder="Mínimo 8 caracteres", help="Usa al menos 8 caracteres.")
+                    password3 = st.text_input("Repetir contraseña", type="password", key="signup_password2", placeholder="Repite tu contraseña")
+                    created = st.form_submit_button("Crear mi cuenta", type="primary", use_container_width=True)
+                if created:
+                    if len(password2) < 8:
+                        st.warning("La contraseña debe tener al menos 8 caracteres.")
+                    elif password2 != password3:
+                        st.warning("Las contraseñas no coinciden.")
+                    elif not name.strip() or "@" not in email2:
+                        st.warning("Completa tu nombre y escribe un correo válido.")
+                    else:
+                        try:
+                            response = sign_up(client, email2.strip(), password2, name.strip())
+                            if response.session and response.user:
+                                st.session_state.access_token, st.session_state.refresh_token = session_tokens(response.session)
+                                user = auth_user_from_supabase(response.user)
+                                st.session_state.auth_user = user
+                                ensure_profile(client, user)
+                                st.rerun()
+                            else:
+                                st.markdown('<div class="ln-auth-success"><b>Cuenta creada.</b><br>Revisa tu correo para confirmar la cuenta y luego vuelve a iniciar sesión.</div>', unsafe_allow_html=True)
+                        except Exception:
+                            st.error("No se pudo crear la cuenta. Verifica el correo o intenta con otro.")
+
+                st.markdown('<div class="ln-auth-helper"><b>¿Ya tienes una cuenta?</b><br>Selecciona <b>Iniciar sesión</b> arriba.</div>', unsafe_allow_html=True)
+
+            st.markdown('<div class="ln-auth-legal">Al continuar, tus documentos se asocian únicamente a tu cuenta de Lunova.</div>', unsafe_allow_html=True)
 
     st.markdown('</div>', unsafe_allow_html=True)
     st.stop()
